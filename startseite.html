@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperlink Router config </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #383838;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #b4b4b4;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .input-group input[type=text], .input-group input[type=file] {
+            width: calc(100% - 20px);
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-group button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            margin-bottom: 5px;
+        }
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .warning {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hyperlink Router</h1>
+    <div class="container">
+        <!-- Geräteverwaltung -->
+        <div id="deviceManagement">
+            <h2>Geräteverwaltung</h2>
+            <div class="input-group">
+                <label for="deviceName">Gerätename:</label>
+                <input type="text" id="deviceName" placeholder="Gerätename eingeben">
+                <button onclick="addDevice()">Gerät hinzufügen</button>
+            </div>
+            <div class="input-group">
+                <label for="removeDevice">Zu entfernendes Gerät:</label>
+                <input type="text" id="removeDevice" placeholder="Gerätename eingeben">
+                <button onclick="removeDevice()">Gerät entfernen</button>
+            </div>
+            <button onclick="viewDevices()">Geräte anzeigen</button>
+            <ul id="deviceList"></ul>
+            <div id="deviceMessage" class="message"></div>
+        </div>
+
+        <!-- NAS Verwaltung -->
+        <div id="nasManagement">
+            <h2>NAS Verwaltung</h2>
+            <div class="input-group">
+                <label for="fileToSave">Datei zum Speichern:</label>
+                <input type="file" id="fileToSave">
+                <button onclick="saveToNAS()">Datei ins NAS speichern</button>
+            </div>
+            <button onclick="viewNASFiles()">NAS Dateien anzeigen</button>
+            <ul id="nasFileList"></ul>
+            <div id="nasMessage" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        function addDevice() {
+            var deviceName = document.getElementById('deviceName').value.trim();
+            if (deviceName === "") {
+                displayMessage('Bitte geben Sie einen Gerätenamen ein.', 'warning', 'deviceMessage');
+                return;
+            }
+
+            var deviceList = document.getElementById('deviceList');
+            var listItem = document.createElement('li');
+            listItem.textContent = deviceName;
+            deviceList.appendChild(listItem);
+            document.getElementById('deviceName').value = "";
+            displayMessage(`Gerät '${deviceName}' hinzugefügt.`, 'success', 'deviceMessage');
+        }
+
+        function removeDevice() {
+            var deviceName = document.getElementById('removeDevice').value.trim();
+            if (deviceName === "") {
+                displayMessage('Bitte geben Sie einen Gerätenamen ein.', 'warning', 'deviceMessage');
+                return;
+            }
+
+            var deviceList = document.getElementById('deviceList');
+            var items = deviceList.getElementsByTagName('li');
+            var removed = false;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].textContent === deviceName) {
+                    deviceList.removeChild(items[i]);
+                    removed = true;
+                    break;
+                }
+            }
+
+            if (removed) {
+                displayMessage(`Gerät '${deviceName}' entfernt.`, 'success', 'deviceMessage');
+            } else {
+                displayMessage(`Gerät '${deviceName}' nicht gefunden.`, 'warning', 'deviceMessage');
+            }
+
+            document.getElementById('removeDevice').value = "";
+        }
+
+        function viewDevices() {
+            var deviceList = document.getElementById('deviceList');
+            var items = deviceList.getElementsByTagName('li');
+            if (items.length === 0) {
+                displayMessage('Keine Geräte gefunden.', 'warning', 'deviceMessage');
+            } else {
+                var devices = [];
+                for (var i = 0; i < items.length; i++) {
+                    devices.push(items[i].textContent);
+                }
+                displayMessage(`Verbundene Geräte:\n${devices.join('\n')}`, 'success', 'deviceMessage');
+            }
+        }
+
+        function saveToNAS() {
+            var fileToSave = document.getElementById('fileToSave').files[0];
+            if (!fileToSave) {
+                displayMessage('Bitte wählen Sie eine Datei aus.', 'warning', 'nasMessage');
+                return;
+            }
+
+            var nasFileList = document.getElementById('nasFileList');
+            var listItem = document.createElement('li');
+            listItem.textContent = fileToSave.name;
+            nasFileList.appendChild(listItem);
+            document.getElementById('fileToSave').value = "";
+            displayMessage(`Datei '${fileToSave.name}' ins NAS gespeichert.`, 'success', 'nasMessage');
+        }
+
+        function viewNASFiles() {
+            var nasFileList = document.getElementById('nasFileList');
+            var items = nasFileList.getElementsByTagName('li');
+            if (items.length === 0) {
+                displayMessage('Keine Dateien im NAS gefunden.', 'warning', 'nasMessage');
+            } else {
+                var files = [];
+                for (var i = 0; i < items.length; i++) {
+                    files.push(items[i].textContent);
+                }
+                displayMessage(`Dateien im NAS:\n${files.join('\n')}`, 'success', 'nasMessage');
+            }
+        }
+
+        function displayMessage(message, type, elementId) {
+            var messageDiv = document.getElementById(elementId);
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+        }
+    </script>
+</body>
+</html>
